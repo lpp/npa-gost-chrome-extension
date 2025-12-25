@@ -1,6 +1,13 @@
 document.addEventListener('DOMContentLoaded', function () {
   const generateBtn = document.getElementById('generate');
   const resultText = document.getElementById('result');
+  const openConsultantBtn = document.getElementById('openConsultant');
+
+  openConsultantBtn.addEventListener('click', function() {
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+      chrome.tabs.update(tabs[0].id, { url: 'https://www.consultant.ru/cons/cgi/online.cgi' });
+    });
+  });
 
   generateBtn.addEventListener('click', function () {
     resultText.value = 'Generating...';
@@ -17,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
           // Copy the citation to the clipboard
           navigator.clipboard.writeText(citation).then(() => {
             const originalButtonText = generateBtn.textContent;
-            generateBtn.textContent = 'Copied to Clipboard!';
+            generateBtn.textContent = 'Ссылка скопирована в буфер обмена!';
             setTimeout(() => {
               generateBtn.textContent = originalButtonText;
             }, 2000); // Revert after 2 seconds
