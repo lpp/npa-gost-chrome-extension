@@ -25,5 +25,11 @@ The extension's icon will appear in your browser's toolbar, and it will be ready
 *   The extension's logic is primarily contained within `popup.js`.
 *   It interacts with the active `consultant.ru` tab to get document details.
 *   The script fetches data from a `consultant.ru` CGI endpoint, parses the HTML response to find the document title and publication source, and then formats it according to GOST standards.
+*   The formatting logic in `formatGostLink` supports several publication sources via regex matching:
+    *   "Собрание законодательства РФ"
+    *   "Вестник Банка России"
+    *   "Официальный интернет-портал правовой информации" (pravo.gov.ru)
+    *   "Учет, налоги, право" (from "Официальные документы")
+*   If the publication source is not found or cannot be formatted, a fallback citation is generated using the document's URL and an access date.
 *   There are no external libraries or dependencies. The code uses standard browser APIs like `fetch`, `DOMParser`, and `navigator.clipboard`.
 *   The `README.md` suggests the project was largely generated using an AI tool (Gemini CLI), which may explain the self-contained and direct nature of the code.

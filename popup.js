@@ -67,11 +67,11 @@ document.addEventListener('DOMContentLoaded', function () {
     if (esseContentHtml) {
         const { documentTitle, publicationInfo } = extractDocumentInfoFromPopupHtml(esseContentHtml);
 
-        if (publicationInfo.includes("not found") || documentTitle.includes("not found")) {
-            throw new Error(`Failed to extract info. Title: ${documentTitle}, Pub Info: ${publicationInfo}`);
+        if (documentTitle.includes("not found")) {
+            throw new Error(`Failed to extract title.`);
         }
         
-        return formatGostLink(documentTitle, publicationInfo);
+        return formatGostLink(documentTitle, publicationInfo, consultantUrl);
     } else {
         throw new Error("Could not find 'esse.content' HTML in the JSON response.");
     }
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!currentElem) break;
 
             const text = currentElem.textContent.trim();
-            if (text.includes("Собрание законодательства РФ") || text.includes("Вестник Банка России")) {
+            if (text.includes("Собрание законодательства РФ") || text.includes("Вестник Банка России") || text.includes("Официальный интернет-портал правовой информации") || text.includes("Учет, налоги, право")) {
                 publicationInfo = text;
                 break;
             }
@@ -143,13 +143,27 @@ document.addEventListener('DOMContentLoaded', function () {
     return { documentTitle, publicationInfo };
   }
 
-  function formatGostLink(title, publicationInfo) {
-    let formattedPublication = `[Не удалось отформатировать по ГОСТ: ${publicationInfo}]`;
+  function formatGostLink(title, publicationInfo, consultantUrl) {
+    let formattedPublication;
 
     const pubMatchSzrf = /"(Собрание законодательства РФ)", \d{2}\.\d{2}\.(\d{4}), N ([\d\s\(\)\S]+?), ст\. (\d+)[.,]?/.exec(publicationInfo);
     if (pubMatchSzrf) {
         const [, sourceName, pubYear, pubNumberPart, pubArticle] = pubMatchSzrf;
         formattedPublication = `${sourceName.trim()}. - ${pubYear.trim()}. - № ${pubNumberPart.trim()}. - Ст. ${pubArticle.trim()}.`;
+        return `${title} // ${formattedPublication}`;
+    }
+
+    const pubMatchPravoGov = /"(Официальный интернет-портал правовой информации)" \(www\.pravo\.gov\.ru\), (\d{2}\.\d{2}\.\d{4})/.exec(publicationInfo);
+    if (pubMatchPravoGov) {
+        const [, sourceName, pubDate] = pubMatchPravoGov;
+        formattedPublication = `${sourceName.trim()} (www.pravo.gov.ru). - ${pubDate.trim()}.`;
+        return `${title} // ${formattedPublication}`;
+    }
+
+    const pubMatchUntp = /"Официальные документы", N (\d+), .*(\d{4}) \(еженедельное приложение к газете "(Учет, налоги, право)"\)/.exec(publicationInfo);
+    if (pubMatchUntp) {
+        const [, pubNumber, pubYear, sourceName] = pubMatchUntp;
+        formattedPublication = `${sourceName.trim()}. - ${pubYear.trim()}. - N ${pubNumber.trim()}.`;
         return `${title} // ${formattedPublication}`;
     }
 
@@ -160,6 +174,23 @@ document.addEventListener('DOMContentLoaded', function () {
         return `${title} // ${formattedPublication}`;
     }
 
-    return `${title} // ${formattedPublication}`;
+    const parsedUrl = new URL(consultantUrl);
+    const params = new URLSearchParams(parsedUrl.search);
+    const n = params.get('n');
+    const base = params.get('base');
+    const req = params.get('req');
+    const shortUrl = `${parsedUrl.origin}${parsedUrl.pathname}?req=${req}&base=${base}&n=${n}`;
+
+    const today = new Date();
+    const threeDaysAgo = new Date(today);
+    threeDaysAgo.setDate(today.getDate() - 3);
+
+    const day = String(threeDaysAgo.getDate()).padStart(2, '0');
+    const month = String(threeDaysAgo.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+    const year = threeDaysAgo.getFullYear();
+
+    const formattedDate = `${day}.${month}.${year}`;
+
+    return `${title} // СПС КонсультантПлюс. - URL: ${shortUrl} (дата обращения: ${formattedDate})`;
   }
 });
