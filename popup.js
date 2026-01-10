@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!currentElem) break;
 
             const text = currentElem.textContent.trim();
-            if (text.includes("Собрание законодательства РФ") || text.includes("Вестник Банка России") || text.includes("Официальный интернет-портал правовой информации") || text.includes("Учет, налоги, право")) {
+            if (text.includes("Собрание законодательства РФ") || text.includes("Вестник Банка России") || text.includes("Учет, налоги, право")) {
                 publicationInfo = text;
                 break;
             }
@@ -150,13 +150,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (pubMatchSzrf) {
         const [, sourceName, pubYear, pubNumberPart, pubArticle] = pubMatchSzrf;
         formattedPublication = `${sourceName.trim()}. - ${pubYear.trim()}. - № ${pubNumberPart.trim()}. - Ст. ${pubArticle.trim()}.`;
-        return `${title} // ${formattedPublication}`;
-    }
-
-    const pubMatchPravoGov = /"(Официальный интернет-портал правовой информации)" \(www\.pravo\.gov\.ru\), (\d{2}\.\d{2}\.\d{4})/.exec(publicationInfo);
-    if (pubMatchPravoGov) {
-        const [, sourceName, pubDate] = pubMatchPravoGov;
-        formattedPublication = `${sourceName.trim()} (www.pravo.gov.ru). - ${pubDate.trim()}.`;
         return `${title} // ${formattedPublication}`;
     }
 
