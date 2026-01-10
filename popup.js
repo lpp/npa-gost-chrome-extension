@@ -38,6 +38,11 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  /**
+   * Generates a GOST citation for a given Consultant.ru URL.
+   * @param {string} consultantUrl - The URL of the document on Consultant.ru.
+   * @returns {Promise<string>} A promise that resolves with the formatted GOST citation.
+   */
   async function generateGostCitation(consultantUrl) {
     const parsedUrl = new URL(consultantUrl);
     const params = new URLSearchParams(parsedUrl.search);
@@ -77,6 +82,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  /**
+   * Fetches data from the Consultant.ru CGI endpoint.
+   * @param {string} url - The URL to fetch data from.
+   * @returns {Promise<object>} A promise that resolves with the JSON response from the server.
+   */
   async function fetchConsultantData(url) {
     const headers = {
       'Accept': 'application/json, text/javascript, */*; q=0.01',
@@ -89,11 +99,16 @@ document.addEventListener('DOMContentLoaded', function () {
     return response.json();
   }
 
+  /**
+   * Extracts the document title and publication information from the HTML of the document's popup.
+   * @param {string} popupHtml - The HTML content of the document's popup.
+   * @returns {{documentTitle: string, publicationInfo: string}} An object containing the document title and publication information.
+   */
   function extractDocumentInfoFromPopupHtml(popupHtml) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(popupHtml, 'text/html');
 
-    // --- Generic Publication Info Extraction (Direct translation from Python) ---
+    // Extract publication information
     let publicationInfo = "Publication info not found";
     const pubHeaderSpan = Array.from(doc.querySelectorAll('span.b')).find(span => span.textContent.trim() === 'Источник публикации');
     if (pubHeaderSpan) {
@@ -114,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // --- Generic Title Extraction (Direct translation from Python) ---
+    // Extract document title
     let documentTitle = "Title not found";
     const titleHeaderSpan = Array.from(doc.querySelectorAll('span.b')).find(span => span.textContent.trim() === 'Название документа');
     if (titleHeaderSpan) {
@@ -126,8 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (currentElem.classList.length > 0 && !currentElem.classList.contains('U')) {
                 break;
             }
-            // The original python code was looking for the next 'T' class, which is equivalent to finding a class that is not 'U'
-            // and contains other classes, like "T MPP"
+            // Stop at the next 'T' class, which indicates a new section.
             if (currentElem.classList.contains('T')) {
                 break;
             }
@@ -143,6 +157,13 @@ document.addEventListener('DOMContentLoaded', function () {
     return { documentTitle, publicationInfo };
   }
 
+  /**
+   * Formats the citation according to GOST standards.
+   * @param {string} title - The title of the document.
+   * @param {string} publicationInfo - The publication information.
+   * @param {string} consultantUrl - The URL of the document on Consultant.ru.
+   * @returns {string} The formatted GOST citation.
+   */
   function formatGostLink(title, publicationInfo, consultantUrl) {
     let formattedPublication;
 
