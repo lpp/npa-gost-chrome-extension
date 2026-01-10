@@ -38,6 +38,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  // Automatically click the button to generate the link on popup open
+  generateBtn.click();
+
   /**
    * Generates a GOST citation for a given Consultant.ru URL.
    * @param {string} consultantUrl - The URL of the document on Consultant.ru.
